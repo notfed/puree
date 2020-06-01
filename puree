@@ -1,0 +1,2 @@
+#!/bin/sh
+python3 -c 'import pureelib.porcelain.puree_main as x; x.main()' $*

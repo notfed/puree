@@ -1,0 +1,312 @@
+<HTML><HEAD><TITLE>Manpage of puree</TITLE>
+</HEAD><BODY>
+<H1>puree(1)</H1>
+
+<P>
+
+<A NAME="lbAB">&nbsp;</A>
+<H2>NAME</H2>
+
+<P>
+
+<B>puree</B> - encrypt devices with PUREE (the full-disk encryption format)
+<P>
+<A NAME="lbAC">&nbsp;</A>
+<H2>SYNOPSIS</H2>
+
+<P>
+
+<P>
+<B>puree info</B> [-v] [-p] &lt;<I>password_file</I>&gt;] [-f] &lt;<I>cipherdevice</I>&gt;
+<P>
+<B>puree format</B> [-v] [-p] &lt;<I>password_file</I>&gt;] [-f] &lt;<I>cipherdevice</I>&gt; &lt;<I>subspec</I>&gt;
+<P>
+<B>puree map</B> [-v] [-p] &lt;<I>password_file</I>&gt;] [-f] &lt;<I>cipherdevice</I>&gt; &lt;<I>plaindevice</I>&gt;
+<P>
+<B>puree unmap</B> [-v] &lt;<I>plaindevice</I>&gt;
+<P>
+<B>puree destroy</B> [-v] [-f] [-q] &lt;<I>device</I>&gt;
+<P>
+<A NAME="lbAD">&nbsp;</A>
+<H2>DESCRIPTION</H2>
+
+<P>
+
+<P>
+The <B>puree</B> tool suite allows you to password-protect disk devices (using <B>dm-crypt</B> and the PUREE header format) in such a way that the entire disk is indistinguishable from random data. Notably this occurs without requiring you to store any associated data on a separate disk (in comparison, most disk encryption formats require the user to store a separate &quot;detached header&quot; somewhere to accomplish this).
+<P>
+The full lifecycle of encrypting a disk with PUREE is as follows:
+<P>
+<DL COMPACT><DT><DD>
+1) First format the  disk with '<B>puree format</B>' (keeping in mind this will <B>destroy</B> existing data from the disk). 
+<P>
+2) If you'd like, you can now use the <B>puree info</B> command to verify that the disk is formatted correctly, and that you still have the correct password to the disk.
+<P>
+3) Next, map the disk to a virtual device with '<B>puree map</B>'. This virtual device (which will be located under <B>/dev/mapper/</B>) can then be treated as if it were a new disk. Do whatever you'd like with it now, such as as format it with a filesystem, or mount it.
+<P>
+4) When you're done, use <B>puree unmap</B> to unmap the virtual device. After doing this, the disk &quot;locked&quot;, and will not be unlocked until you call <B>puree map</B> again.
+<P>
+5) If you'd like to destroy all data on a disk, use <B>puree destroy</B>.
+</DL>
+
+<P>
+<A NAME="lbAE">&nbsp;</A>
+<H2>OPTIONS</H2>
+
+<P>
+-v
+<DL COMPACT><DT><DD>
+Show verbose output.
+</DL>
+
+<P>
+-p &lt;password_file&gt;
+<DL COMPACT><DT><DD>
+Instead of prompting for a password, read it from the specified file.
+</DL>
+
+<P>
+-f
+<DL COMPACT><DT><DD>
+Don't ask for confirmation before writing to disk. (WARNING: Use at your own risk!)
+</DL>
+
+<P>
+&lt;<I>device</I>&gt;
+<DL COMPACT><DT><DD>
+A block device (i.e, disk, partition, or loop device).
+</DL>
+
+<P>
+&lt;<I>cipherdevice</I>&gt;
+<DL COMPACT><DT><DD>
+A block device (i.e, disk, partition, or loop device) encrypted, or to be encrypted, with PUREE.
+</DL>
+
+<P>
+&lt;<I>plaindevice</I>&gt;
+<DL COMPACT><DT><DD>
+A virtual block device (i.e., device-mapper mapping), or target path to create a virtual block device.
+</DL>
+
+<P>
+&lt;<I>subspec</I>&gt;
+<DL COMPACT><DT><DD>
+Use <I>subspec</I> as the a sub-specification (i.e., the disk format and cryptosystem to use). See section <B>SUB-SPECIFICATIONS</B> for more details.
+</DL>
+
+<P>
+<A NAME="lbAF">&nbsp;</A>
+<H2>COMMANDS</H2>
+
+<P>
+
+<P>
+<B>puree format</B> [<B>-p</B> &lt;<I>password_file</I>&gt;] [-f] [-v] &lt;<I>cipherdevice</I>&gt; &lt;<I>subspec</I>&gt;
+<P>
+<DL COMPACT><DT><DD>
+Formats the block device <I>cipherdevice</I> with the PUREE disk encryption format using sub-specification <I>subspec</I>. See section <B>SUB-SPECIFICATIONS</B> for more details.
+<P>
+</DL>
+
+<P>
+<B>puree info</B> [<B>-p</B> &lt;<I>password_file</I>&gt;] [-f] [-v] &lt;<I>cipherdevice</I>&gt;
+<P>
+<DL COMPACT><DT><DD>
+Shows detailed PUREE header information for block device <I>cipherdevice</I>; the device must have already been formatted with the PUREE disk encryption format.
+</DL>
+
+<P>
+<B>puree map</B> [<B>-p</B> &lt;<I>password_file</I>&gt;] [-f] [-v] &lt;<I>cipherdevice</I>&gt; &lt;<I>plaindevice</I>&gt;
+<P>
+<DL COMPACT><DT><DD>
+Creates a new virtual block device, <I>plaindevice</I>, for which all writes (or reads) will be transparently encrypted (or decrypted) then written to (or read from) <I>cipherdevice</I>. The <I>cipherdevice</I> must have already been formatted with <B>puree format</B>, and a password must be provided to unlock it when it is mapped.  Internally, this command leverages the dm-crypt device-mapper target using whatever parameters were used when the <I>cipherdevice</I> was formatted.
+</DL>
+
+<P>
+<B>puree unmap</B> [-v] &lt;<I>plaindevice</I>&gt;
+<P>
+<DL COMPACT><DT><DD>
+Unmaps the virtual block device <I>plaindevice</I>, thereby making the device's plaintext data unavailable until it is mapped again.
+</DL>
+
+<P>
+<B>puree destroy</B> [-f] [-v] [-q] &lt;<I>device</I>&gt;
+<P>
+<DL COMPACT><DT><DD>
+Destroys all data on the specified <B>device</B> by writing random data. <B>WARNING: This will wipe ALL data on the disk</B>. If <B>-q</B> is supplied, then only the first 1MiB of data and the last 1MiB of data on the disk will destroyed (which, for a cipherdevice previously encrypted with PUREE, will effectively wipe the entire disk).
+<P>
+</DL>
+<A NAME="lbAG">&nbsp;</A>
+<H2>EXAMPLES</H2>
+
+<P>
+
+<P>
+To format, map, and mount a device, you may perform the series of commands listed below, in order.
+<P>
+To encrypt device <B>/dev/sdz</B> with <B>AES-256-CBC-ESSIV-SHA256</B>:
+<P>
+<DL COMPACT><DT><DD>
+sudo puree format /dev/sdz aes256-cbc-essiv-sha256
+</DL>
+
+<P>
+(You will be prompted for a password. PUREE will require you to prefix your password with a &quot;parameter character&quot;; see &quot;PARAMETER CHARACTERS&quot; section below for an explanation.)
+<P>
+Your device should now be encrypted.
+<P>
+Next, you'll need to &quot;map&quot; your encrypted disk device (we'll assume <B>/dev/sdz</B>) to a virtual device :
+<P>
+<DL COMPACT><DT><DD>
+sudo puree map /dev/sdz /dev/mapper/sdz
+</DL>
+
+<P>
+(You will be prompted to re-enter the password you chose earlier.)
+<P>
+Your virtual device should now be available at <B>/dev/mapper/sdz</B>. You can now treat <B>/dev/mapper/sdz</B> as you would a normal disk device, and its data will be transparently encrypted/decrypted.
+<P>
+For example, to format it with a filesystem:
+<P>
+<DL COMPACT><DT><DD>
+sudo mkfs.ext4 /dev/mapper/sdz
+<BR>
+
+sudo mount /dev/mapper/sdz /mnt
+</DL>
+
+<P>
+You now have an filesystem mounted to <B>/mnt</B>. You can treat it like a normal filesystem, and its data will be transparently encrypted/decrypted.
+<P>
+When you're done using the device, unmap it with:
+<P>
+<DL COMPACT><DT><DD>
+sudo puree unmap /dev/mapper/sdz
+</DL>
+
+<P>
+<P>
+
+To prove to yourself that the disk is encrypted, try running `sudo hexdump -C /dev/sdz | less`, and you'll see something like this:
+<P>
+<PRE>
+00000000  3ac41e42 da074126 fb9d4c6a 01a15f56  |...B..A&amp;..Lj.._V|
+00000010  c71c6c47 3a891a07 77af909a 4efb1a8f  |..lG:...w...N...|
+00000020  72fc3eac 1766db1d 55d2c0cd 14a666bd  |r.&gt;..f..U.....f.|
+00000030  5592d610 bbc3ad81 46eb2bf7 cec566b6  |U.......F.+...f.|
+00000040  8c44df17 8868323d d175458d 4327d107  |.D...h2=.uE.C'..|
+00000050  6dbf3af8 11083156 dd3bb235 83826b62  |m.:...1V.;.5..kb|
+00000060  fad3a02d 48acebc5 7b79ce68 ec9e68f1  |...-H...{y.h..h.|
+00000070  4c5daf93 1a2bb71f ace7f417 ca627d05  |L]...+.......b}.|
+00000080  39568ce6 5ec12f58 38c056d3 d682d728  |9V..^./X8.V....(|
+00000090  446df278 d823fee0 ff2f4c04 434b5f5e  |Dm.x.#.../L.CK_^|
+000000a0  bc425830 55c455cd b4439385 c59bf3fd  |.BX0U.U..C......|
+000000b0  62019305 a5f38ce9 12c0c138 76f31f1b  |b..........8v...|
+000000c0  8e67545a e3abf95a 2247fc0c 5c55558c  |.gTZ...Z&quot;G....U.|
+000000d0  01c62344 8fbb35df 80b313da 63269760  |..#D..5.....c&amp;.`|
+000000e0  4dfbd88d d32a1179 e4038d7c 3c4412eb  |M....*.y...|&lt;D..|
+000000f0  c856ecfe 15e5c4a5 d7f12165 628c05b8  |.V........!eb...|
+00000100  6c00f7e2 dcb39dce dff67d1d e9551eaa  |l.........}..U..|
+00000110  d9e24fd6 0f42b399 ed18adec 4de8912a  |..O..B......M..*|
+00000120  2316e413 1712a0a7 044b96d3 154d1b2f  |#........K...M./|
+00000130  67a62365 6f15d733 f4541fc7 8781bfd3  |g.#eo..3.T......|
+
+</PRE>
+
+<P>
+<A NAME="lbAH">&nbsp;</A>
+<H2>PARAMETER CHARACTERS</H2>
+
+<P>
+PUREE encrypts disks using a key derived from a password via the <B>argon2id</B> password-key derivation function.  In order to calculate a derived key from a password, however, a few parameters are required:
+<P>
+1. Parallelism: the maximum number of parallel CPU threads
+<P>
+2. Memory: the amount of RAM required
+<P>
+3. Iterations: multiplier on amount of time required
+<P>
+One goal of PUREE is that the disk must be indistinguishable from random. This means these parameters can not be stored on the disk.  Instead, PUREE stores these parameters in the password.  Every PUREE password must be prefixed with a special character, called the &quot;parameter character&quot;. Current valid values are:
+<P>
+<DL COMPACT><DT><DD>
+<PRE>
+'b' =&gt; parallelism: 1,  memory: 75MiB,  iterations: 1
+'c' =&gt; parallelism: 1,  memory: 250MiB, iterations: 1
+'d' =&gt; parallelism: 4,  memory: 250MiB, iterations: 4
+'e' =&gt; parallelism: 1,  memory: 1GiB,   iterations: 1
+'f' =&gt; parallelism: 4,  memory: 1GiB,   iterations: 4
+'g' =&gt; parallelism: 1,  memory: 4GiB,   iterations: 1
+'h' =&gt; parallelism: 4,  memory: 4GiB,   iterations: 4
+'i' =&gt; parallelism: 1,  memory: 16GiB,  iterations: 1
+'j' =&gt; parallelism: 4,  memory: 16GiB,  iterations: 4
+...
+</PRE>
+
+<P>
+Or, if 'a' is chosen as the parameter character, the password will be derived simply by hashing the password (along with a salt) using the <B>blake2b</B> hash function.
+</DL>
+
+<P>
+As CPU and RAM become cheaper, more parameter characters will be added to this table.
+<P>
+<A NAME="lbAI">&nbsp;</A>
+<H2>SUB-SPECIFICATIONS</H2>
+
+<P>
+Currently, the following subspecs are supported:
+<P>
+- aes256-xts-plain64
+<P>
+<DL COMPACT><DT><DD>
+Encrypt each sector of the disk with AES-256 in XTS mode.
+</DL>
+
+<P>
+- aes256-cbc-essiv-sha256
+<P>
+<DL COMPACT><DT><DD>
+Encrypt each sector of the disk with AES-256 in CBC-ESSIV mode, using SHA-256 as the hash function.
+</DL>
+
+<P>
+- aes128-xts-plain64
+<P>
+<DL COMPACT><DT><DD>
+Encrypt each sector of the disk with AES-128 in XTS mode.
+</DL>
+
+<P>
+- aes128-cbc-essiv-sha256
+<P>
+<DL COMPACT><DT><DD>
+Encrypt each sector of the disk with AES-128 in CBC-ESSIV mode, using SHA-256 as the hash function.
+</DL>
+
+<P>
+<A NAME="lbAJ">&nbsp;</A>
+<H2>EXIT CODE</H2>
+
+<P>
+
+If <B>puree</B> was successful, it will exit with code 0.
+<BR>
+
+If <B>puree</B> encounters an error, it will exit with code 1.
+<BR>
+
+If invalid arguments are passed to <B>puree</B>, it will exit with code 2.
+<P>
+<A NAME="lbAK">&nbsp;</A>
+<H2>WEBSITE</H2>
+
+For more information, see &lt;<A HREF="https://puree.cc">https://puree.cc</A>&gt;.
+<P>
+<A NAME="lbAL">&nbsp;</A>
+<H2>AUTHOR</H2>
+
+Jay Sullivan &lt;<A HREF="mailto:jay@identity.pub">jay@identity.pub</A>&gt;
+<P>
+<P>
+</BODY>
+</HTML>
