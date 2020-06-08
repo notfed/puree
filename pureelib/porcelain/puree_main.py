@@ -55,7 +55,7 @@ def main():
             explain_options()
         # Show Version
         elif(sys.argv[1] == '--version' or sys.argv[1] == '-version' or sys.argv[1] == 'version'):
-            print("1.0.1")
+            print("1.0.2")
         # Show Man Page
         elif(porcelain_help.asked_for_help(sys.argv[1:])):
             porcelain_help.show_help()

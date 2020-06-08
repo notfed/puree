@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="puree",
-    version="1.0.1",
+    version="1.0.2",
     author="Jay Sullivan",
     author_email="jay@identity.pub",
     description="PUREE: Password-based Uniform-Random-Equivalent Encryption",
