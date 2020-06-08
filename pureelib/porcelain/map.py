@@ -80,16 +80,24 @@ def puree_map(argv):
     else:
         raise ValueError("Unsupported subspec: " + plumbing_common.to_hex(box1.subspec))
 
-    # Map the device
+    # Create a "dmsetup table" string which contains all the parameters
     logical_start_sector = str(box2.logical_start_sector)
     num_sectors = str(box2.num_sectors)
     key = plumbing_common.to_hex(box2.key)
     table = ('0 %s crypt %s %s 0 %s %s' \
               % (num_sectors,cipher_name,key,device,logical_start_sector))
-    exit_code = subprocess.call(['dmsetup','create', str(plaindevice), '--table', table])
+
+    # Map the device
+    completed_process = subprocess.run(['dmsetup','create', str(plaindevice)], \
+                                        input=table, encoding='utf-8', capture_output=True)
+
+    # If verbose mode, show the output from dmsetup
+    if(verbose):
+        sys.stdout.write(completed_process.stdout)
+        sys.stderr.write(completed_process.stderr)
 
     # Show device name
-    if(exit_code == 0):
+    if(completed_process.returncode == 0):
         print("Device mapped as '/dev/mapper/" + plaindevice + "'.")
     else:
-        plumbing_common.eprint("puree: error: failed to map device", exit_code)
+        plumbing_common.eprint("puree: error: failed to map device")
