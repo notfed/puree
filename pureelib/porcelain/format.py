@@ -84,7 +84,8 @@ def puree_format(argv):
             sys.exit(2)
 
     # Format the disk
-    headers = plumbing_format.puree_format(device,subspec,password_file,password,False,h,v)
+    with open(device,'r+b') as f:
+        headers = plumbing_format.puree_format(f,None,subspec,password_file,password,False,h,v)
 
     # If -v was chosen, show all the variables
     if(v):

@@ -16,10 +16,9 @@ import pureelib.plumbing.common as plumbing_common
 def puree_unpack(device,password):
 
     # Read first sector from the disk
-    with open(device, 'rb') as f:
-        f.seek(0)
-        prefetch_size = 512 # TODO: With anti-forensic region, should pre-fetch 1MiB
-        root_sector = f.read(prefetch_size)
+    device.seek(0)
+    prefetch_size = 512 # TODO: With anti-forensic region, should pre-fetch 1MiB
+    root_sector = device.read(prefetch_size)
     if(len(root_sector)<512):
         raise RuntimeError("Can't read header: device is smaller than than 512 bytes.")
 

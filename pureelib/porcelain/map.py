@@ -50,7 +50,8 @@ def puree_map(argv):
     password = plumbing_common.prompt_for_password_or_read_from_file(password_file, "Password: ",None)
     
     # Read the device header
-    headers = punpack.puree_unpack(device,password)
+    with open(device, 'rb') as f:
+        headers = punpack.puree_unpack(f,password)
     salt = headers[0]
     box1 = headers[1]
     box2 = headers[2]

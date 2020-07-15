@@ -15,7 +15,8 @@ import pureelib.plumbing.common as plumbing_common
 # TODO: Write end-of-disk shadow header
 
 # Format a disk wih the given data and specified subspec
-def puree_format(d, # device
+def puree_format(d, # device,
+                 blockdev_size, # device size
                  c, # cipher
                  p, # password_file
                  password, # password
@@ -23,14 +24,15 @@ def puree_format(d, # device
                  h, # derive key from password
                  v  # show verbose output
                  ):
+    mebibyte = 1048576 # bytes
 
     # Sanity checks
-    blockdev_size = get_blockdev_size(d)
-    mebibyte = 1048576 # bytes
-    if(blockdev_size<=2*mebibyte):
-        raise RuntimeError("Block device <cipherdevice> is too small (<=2MiB bytes) to format.")
-    if(blockdev_size%512!=0):
-        raise RuntimeError("Block device <cipherdevice> is not a multiple of 512, which is too weird to continue.")
+    if(blockdev_size == None):
+        blockdev_size = get_blockdev_size(d)
+        if(blockdev_size<=2*mebibyte):
+            raise RuntimeError("Block device <cipherdevice> is too small (<=2MiB bytes) to format.")
+        if(blockdev_size%512!=0):
+            raise RuntimeError("Block device <cipherdevice> is not a multiple of 512, which is too weird to continue.")
     
     # Verify that the subspec is valid
     if plumbing_subspecs.subspec_name_to_id(c) == None:
@@ -50,7 +52,7 @@ def puree_format(d, # device
     pwhash = plumbing_common.calculate_pwhash(salt,password,pwhash_parameters)
     box_key = pwhash
 
-    # Initialize Box Two (With highly-coupled assumptions about which subspecs we suppor)
+    # Initialize Box Two (With highly-coupled assumptions about which subspecs we support)
     key_size = 0
     if c == plumbing_subspecs.DiskAes256XtsPlain64.subspec_name():
         box_two = plumbing_subspecs.DiskAes256XtsPlain64()
@@ -86,18 +88,16 @@ def puree_format(d, # device
     box_two_enc = plumbing_common.encrypt_box(box_key,2,box_two.pack())
 
     # Now, write to the disk
-    with open(d, 'r+b') as f:
-        f.seek(0)
-        combined_header = salt + box_one_enc + box_two_enc
-        mib = 1048576
-        filler = pysodium.randombytes(mib - len(combined_header))
-        f.write(combined_header+filler)
+    d.seek(0)
+    combined_header = salt + box_one_enc + box_two_enc
+    mib = 1048576
+    filler = pysodium.randombytes(mib - len(combined_header))
+    d.write(combined_header+filler)
 
     # Return all headers
     return [salt,box_one,box_two]
 
-def get_blockdev_size(path):
+def get_blockdev_size(device):
     """Return device size in bytes.
     """
-    with open(path, 'rb') as f:
-        return f.seek(0, 2) or f.tell()
+    return device.seek(0, 2) or device.tell()

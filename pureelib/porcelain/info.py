@@ -41,7 +41,8 @@ def puree_info(argv):
     password = plumbing_common.prompt_for_password_or_read_from_file(password_file,"Password: ",None)
 
     # Now, read the device header
-    headers = punpack.puree_unpack(device,password)
+    with open(device, 'rb') as f:
+        headers = punpack.puree_unpack(f,password)
 
     # Now, show header information
     print("The disk contains the following header information:")

@@ -12,7 +12,7 @@ setuptools.setup(
     url="https://puree.cc",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    packages=setuptools.find_packages(),
+    packages=setuptools.find_packages(exclude=["tests", "*.tests", "*.tests.*", "tests.*"]),
     scripts=['puree'],
     data_files = [('man/man1', ['docs/puree.1'])],
     classifiers=[
@@ -22,6 +22,7 @@ setuptools.setup(
     ],
     python_requires='>=3.6',
     install_requires=[
+        'pytest>=5.4.3', 'pytest<6.0.0',
         'pysodium>=0.7.5', 'pysodium<1.0.0',
         'argon2-cffi>=20.1.0', 'argon2-cffi<21.0.0'
     ]
